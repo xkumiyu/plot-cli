@@ -173,3 +173,6 @@ dmypy.json
 
 # direnv
 .envrc
+
+# tmp
+tmp/
