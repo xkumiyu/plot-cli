@@ -1,51 +1,121 @@
-from pathlib import Path
-from tempfile import TemporaryDirectory
-from time import sleep
-from typing import Optional
+from typing import Optional, Callable
 
 import click
 import matplotlib.pyplot as plt
-import numpy as np
+import pandas as pd
 
 from . import __version__
 
 
-@click.command()
-@click.option(
-    "-i",
-    "in_file",
-    type=click.Path(exists=True, dir_okay=False),
-    help="Path of input file.",
-)
-@click.option(
-    "-o",
-    "out_file",
-    type=click.Path(dir_okay=False, writable=True),
-    help="Path of output file.",
-)
-@click.option(
-    "--header",
-    "header_index",
-    type=click.IntRange(-1),
-    default=0,
-    show_default=True,
-    help="Number of lines used as header. If -1, no header.",
-)
-@click.option("--title", help="Figure title.")
-@click.option("--xlabel", default="x", show_default=True, help="Figure x lable.")
-@click.option("--ylabel", default="y", show_default=True, help="Figure y lable.")
+def common_options(f: Callable) -> Callable:
+    """Set common options."""
+    f = click.option("--title", help="Figure title.")(f)
+    f = click.option("--index_col", type=click.IntRange(0), help="index column.")(f)
+    f = click.option(
+        "--header",
+        type=click.IntRange(-1),
+        default=0,
+        show_default=True,
+        help="Number of lines used as header. If -1, no header.",
+    )(f)
+    f = click.option(
+        "-o",
+        "--output",
+        "out_file",
+        type=click.Path(dir_okay=False, writable=True),
+        help="Path of output file.",
+    )(f)
+    f = click.option(
+        "-i",
+        "--input",
+        "in_file",
+        type=click.Path(exists=True, dir_okay=False),
+        help="Path of input file.",
+    )(f)
+    return f
+
+
+@click.group(invoke_without_command=True)
+@common_options
 @click.version_option(
     version=click.style(__version__, fg="cyan"), message="%(prog)s version %(version)s"
 )
+@click.pass_context
 def cli(
-    in_file: Optional[str],
-    out_file: Optional[str],
-    header_index: int,
-    title: Optional[str],
-    xlabel: str,
-    ylabel: str,
+    ctx,
+    **kwargs
+    # xlabel: str,
+    # ylabel: str,
 ) -> None:
     """Command Line Interface for Data Visualization."""
+    if ctx.invoked_subcommand is None:
+        _plot(**kwargs)
+
+
+@cli.command()
+@common_options
+def line(**kwargs) -> None:
+    """Plot 2D line graph."""
+    _plot(**kwargs)
+
+
+@cli.command()
+@common_options
+def bar(**kwargs) -> None:
+    """Plot bar graph."""
+    _plot(params={"kind": "bar", "rot": 0}, **kwargs)
+
+
+@cli.command()
+@common_options
+def hist(**kwargs) -> None:
+    """Plot histgram."""
+    _plot(params={"kind": "hist"}, **kwargs)
+
+
+@cli.command()
+@common_options
+@click.option("--x_col", default=0)
+@click.option("--y_col", default=1)
+def scatter(x_col: int, y_col: int, **kwargs):
+    """Plot scatter."""
+    _plot(params={"kind": "scatter", "x": x_col, "y": y_col}, **kwargs)
+
+
+@cli.command()
+@common_options
+@click.option("--y_col", default=0)
+def pie(y_col, **kwargs) -> None:
+    """Plot pie chart."""
+    _plot(params={"kind": "pie", "y": y_col}, **kwargs)
+
+
+def _plot(
+    in_file: Optional[str],
+    out_file: Optional[str],
+    header: int,
+    index_col: Optional[int],
+    title: Optional[str],
+    params: dict = {},
+) -> None:
+    fig, ax = plt.subplots()
+
+    data = read_data(in_file, header, index_col)
+    data.plot(ax=ax, **params)
+
+    if title:
+        ax.set_title(title)
+
+    if out_file:
+        fig.savefig(out_file)
+    else:
+        plt.show()
+
+
+def read_data(
+    in_file: Optional[str], header: int, index_col: Optional[int]
+) -> pd.DataFrame:
+    """Read data from file or stdin."""
     stdin_text = click.get_text_stream("stdin")
     if not stdin_text.isatty():
         fp = stdin_text
@@ -54,41 +124,9 @@ def cli(
             raise click.UsageError('If you do not use pipes, "-i" option is required.')
         fp = open(in_file)
 
-    delimiter = ","
-
-    header = None
-    for _ in range(header_index + 1):
-        header = next(fp).rstrip().split(delimiter)
-
-    data = np.genfromtxt(fp, delimiter=delimiter, dtype=np.float32)
-    fp.close()
-
-    fig, ax = plt.subplots()
-
-    if header:
-        if header[0]:
-            xlabel = header[0]
-        if len(header) == 2:
-            ylabel = header[1]
-    ax.set_xlabel(xlabel)
-    ax.set_ylabel(ylabel)
-
-    if title:
-        ax.set_title(title)
-
-    num_column = data.shape[1]
-    for i in range(1, num_column):
-        (line,) = ax.plot(data[:, 0], data[:, i])
-        if header:
-            line.set_label(header[i])
-    if header:
-        ax.legend()
-
-    if out_file:
-        fig.savefig(out_file)
+    if header == -1:
+        df = pd.read_csv(fp, index_col=index_col)
     else:
-        with TemporaryDirectory() as tmp_dir:
-            tmp = Path(tmp_dir) / "plot.png"
-            fig.savefig(tmp)
-            click.launch(str(tmp))
-            sleep(0.1)
+        df = pd.read_csv(fp, header=header, index_col=index_col)
+
+    return df

@@ -2,13 +2,9 @@
 
 [![GitHub Workflow Status][actions-status]][actions] [![codecov][codecov-status]][codecov] [![License][license]][license-file]
 
-Command Line Interface for Data Visualization.
+This tool is command line interface for data visualization.
 
-The plot-cli works on Python versions:
-
-- Python 3.6
-- Python 3.7
-- Python 3.8
+The plot-cli works on Python version 3.6.1 and greater.
 
 ## Installation
 
@@ -43,7 +39,7 @@ If you do not use "-o" option, it is saved in a temporary file and opened.
 ### Example
 
 ```sh
-echo "x,y\n1,1\n2,4" | plot
+echo "x\n1\n4" | plot
 ```
 
 ## Change Log
