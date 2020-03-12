@@ -2,6 +2,6 @@
 
 ## 0.1.0
 
-Unreleased
+Released 2020-03-13
 
 - Initial release.
