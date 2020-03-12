@@ -3,22 +3,61 @@ name: Python package
 on: [push]
 
 jobs:
-  build:
-    runs-on: ubuntu-latest
+  testing:
+    runs-on: ${{ matrix.os }}
     strategy:
-      max-parallel: 3
       matrix:
+        os: [ubuntu-latest, macos-latest]
         python-version: [3.6, 3.7, 3.8]
     env:
       POETRY_VIRTUALENVS_IN_PROJECT: true
 
     steps:
-    - uses: actions/checkout@v1
+    - uses: actions/checkout@v2
 
     - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v1
       with:
         python-version: ${{ matrix.python-version }}
+
+    - name: Install poetry
+      run: curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | python
+
+    - name: Cache python packages
+      uses: actions/cache@v1
+      with:
+        path: .venv
+        key: ${{ matrix.os }}-python-${{ matrix.python-version }}-${{ hashFiles('**/poetry.lock') }}
+
+    - name: Install dependencies
+      run: |
+        source $HOME/.poetry/env
+        poetry install
+
+    - name: Test with pytest
+      run: |
+        source $HOME/.poetry/env
+        poetry run pytest --cov --cov-report=xml
+
+    - name: Upload report to Codecov
+      uses: codecov/codecov-action@v1
+      with:
+        token: ${{ secrets.CODECOV_TOKEN }}
+        file: ./coverage.xml
+        fail_ci_if_error: true
+
+  linting:
+    runs-on: ubuntu-latest
+    env:
+      POETRY_VIRTUALENVS_IN_PROJECT: true
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Set up Python 3.8
+      uses: actions/setup-python@v1
+      with:
+        python-version: 3.8
 
     - name: Install poetry
       run: |
@@ -29,7 +68,7 @@ jobs:
       uses: actions/cache@v1
       with:
         path: .venv
-        key: python-${{ matrix.python-version }}-${{ hashFiles('**/poetry.lock') }}
+        key: ubuntu-latest-python-3.8-${{ hashFiles('**/poetry.lock') }}
 
     - name: Install dependencies
       run: |
@@ -41,14 +80,22 @@ jobs:
         source $HOME/.poetry/env
         poetry run flake8
 
-    - name: Test with pytest
+    - name: Lint with black
       run: |
         source $HOME/.poetry/env
-        poetry run pytest --cov --cov-report=xml
+        poetry run black . --check
 
-    - name: Upload coverage to Codecov
-      uses: codecov/codecov-action@v1
-      with:
-        token: ${{ secrets.CODECOV_TOKEN }}
-        file: ./coverage.xml
-        fail_ci_if_error: true
+    - name: Lint with isort
+      run: |
+        source $HOME/.poetry/env
+        poetry run isort --check-only
+
+    - name: Lint with mypy
+      run: |
+        source $HOME/.poetry/env
+        poetry run mypy
+
+    - name: Check security with bandit
+      run: |
+        source $HOME/.poetry/env
+        poetry run bandit -r plot_cli
