@@ -36,10 +36,12 @@ plot -i data.csv -o plot.png
 
 If you do not use "-o" option, it is saved in a temporary file and opened.
 
-### Example
+See also `plot --help`.
+
+### Examples
 
 ```sh
-echo "x\n0\n2" | plot
+echo "0\n1\n4" | plot
 ```
 
 ## Change Log

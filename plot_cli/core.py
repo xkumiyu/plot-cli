@@ -9,15 +9,23 @@ from . import __version__
 
 def common_options(f: Callable) -> Callable:
     """Set common options."""
-    f = click.option("--title", help="Figure title.")(f)
-    f = click.option("--index_col", type=click.IntRange(0), help="index column.")(f)
+    f = click.option(
+        "--columns",
+        help='Column names. To set more than one, do the follows. --columns "x,y"',
+    )(f)
+    f = click.option(
+        "--index-col",
+        type=click.IntRange(0),
+        help="Position of the column used as index.",
+    )(f)
     f = click.option(
         "--header",
-        type=click.IntRange(-1),
-        default=0,
-        show_default=True,
-        help="Number of lines used as header. If -1, no header.",
+        type=click.IntRange(0),
+        help="Position of the line used as header.",
     )(f)
+    f = click.option("--x-label", help="X-axis label.")(f)
+    f = click.option("--y-label", help="Y-axis label.")(f)
+    f = click.option("--title", help="Figure title.")(f)
     f = click.option(
         "-o",
         "--output",
@@ -41,12 +49,7 @@ def common_options(f: Callable) -> Callable:
     version=click.style(__version__, fg="cyan"), message="%(prog)s version %(version)s"
 )
 @click.pass_context
-def cli(
-    ctx,
-    **kwargs
-    # xlabel: str,
-    # ylabel: str,
-) -> None:
+def cli(ctx, **kwargs) -> None:
     """Command Line Interface for Data Visualization."""
     if ctx.invoked_subcommand is None:
         _plot(**kwargs)
@@ -75,8 +78,18 @@ def hist(**kwargs) -> None:
 
 @cli.command()
 @common_options
-@click.option("--x_col", default=0)
-@click.option("--y_col", default=1)
+@click.option(
+    "--x-col",
+    default=0,
+    show_default=True,
+    help="Position of the column used for x-axis.",
+)
+@click.option(
+    "--y-col",
+    default=1,
+    show_default=True,
+    help="Position of the column used for y-axis.",
+)
 def scatter(x_col: int, y_col: int, **kwargs):
     """Plot scatter."""
     _plot(params={"kind": "scatter", "x": x_col, "y": y_col}, **kwargs)
@@ -84,7 +97,9 @@ def scatter(x_col: int, y_col: int, **kwargs):
 
 @cli.command()
 @common_options
-@click.option("--y_col", default=0)
+@click.option(
+    "--y-col", default=0, show_default=True, help="Position of the column to plot."
+)
 def pie(y_col, **kwargs) -> None:
     """Plot pie chart."""
     _plot(params={"kind": "pie", "y": y_col}, **kwargs)
@@ -93,18 +108,25 @@ def pie(y_col, **kwargs) -> None:
 def _plot(
     in_file: Optional[str],
     out_file: Optional[str],
-    header: int,
-    index_col: Optional[int],
     title: Optional[str],
+    x_label: Optional[str],
+    y_label: Optional[str],
+    header: Optional[int],
+    index_col: Optional[int],
+    columns: Optional[str],
     params: dict = {},
 ) -> None:
     fig, ax = plt.subplots()
 
-    data = read_data(in_file, header, index_col)
+    data = read_data(in_file, header, index_col, columns)
     data.plot(ax=ax, **params)
 
     if title:
         ax.set_title(title)
+    if x_label:
+        ax.set_xlabel(x_label)
+    if y_label:
+        ax.set_ylabel(y_label)
 
     if out_file:
         fig.savefig(out_file)
@@ -113,7 +135,10 @@ def _plot(
 
 
 def read_data(
-    in_file: Optional[str], header: int, index_col: Optional[int]
+    in_file: Optional[str],
+    header: Optional[int],
+    index_col: Optional[int],
+    columns_str: Optional[str],
 ) -> pd.DataFrame:
     """Read data from file or stdin."""
     stdin_text = click.get_text_stream("stdin")
@@ -124,9 +149,11 @@ def read_data(
             raise click.UsageError('If you do not use pipes, "-i" option is required.')
         fp = open(in_file)
 
-    if header == -1:
-        df = pd.read_csv(fp, index_col=index_col)
-    else:
-        df = pd.read_csv(fp, header=header, index_col=index_col)
+    data = pd.read_csv(fp, header=header, index_col=index_col)
 
-    return df
+    if columns_str:
+        columns = columns_str.split(",")
+        if len(columns) == len(data.columns):
+            data.columns = columns
+
+    return data
