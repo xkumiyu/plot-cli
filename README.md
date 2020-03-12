@@ -16,7 +16,7 @@ pip install plot-cli
 
 ## Usage
 
-To plot from CSV file, use "-i" option:
+To plot from file, use "-i" option:
 
 ```sh
 plot -i data.csv

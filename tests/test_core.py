@@ -23,7 +23,7 @@ def test_plot_and_save(tmp_path, runner):
 
     assert path.exists() is False
 
-    result = runner.invoke(cli, ["-o", str(path)], input="x,y\n1,1\n2,4")
+    result = runner.invoke(cli, ["-o", str(path)], input="0,0\n1,1")
 
     assert result.exit_code == 0
     assert result.output == ""
@@ -36,7 +36,30 @@ def test_plot(tmp_path, runner, kind):
 
     assert path.exists() is False
 
-    result = runner.invoke(cli, [kind, "-o", str(path)], input="x,y\n1,1\n2,4")
+    result = runner.invoke(cli, [kind, "-o", str(path)], input="0,0\n1,1")
+
+    assert result.exit_code == 0
+    assert result.output == ""
+    assert path.exists() is True
+
+
+@pytest.mark.parametrize(
+    "option",
+    [
+        ["--title", "title"],
+        ["--x-label", "x"],
+        ["--y-label", "y"],
+        ["--columns", "x,y"],
+        ["--use-cols", "0"],
+    ],
+)
+def test_with_option(tmp_path, runner, option):
+    path = tmp_path / "plot.png"
+
+    assert path.exists() is False
+
+    args = option + ["-o", str(path)]
+    result = runner.invoke(cli, args, input="0,0\n1,1")
 
     assert result.exit_code == 0
     assert result.output == ""

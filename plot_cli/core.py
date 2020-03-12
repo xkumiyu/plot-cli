@@ -1,4 +1,4 @@
-from typing import Callable, Optional
+from typing import IO, Callable, Optional
 
 import click
 import matplotlib.pyplot as plt
@@ -7,11 +7,39 @@ import pandas as pd
 from . import __version__
 
 
+def _validate_columns(ctx, param, value):
+    if value is None:
+        return None
+    else:
+        return value.split(",")
+
+
+def _validate_use_cols(ctx, param, value):
+    if value is None:
+        return None
+    try:
+        return set([int(x) for x in value.split(",")])
+    except ValueError as e:
+        raise click.BadParameter(e)
+
+
 def common_options(f: Callable) -> Callable:
     """Set common options."""
     f = click.option(
         "--columns",
-        help='Column names. To set more than one, do the follows. --columns "x,y"',
+        callback=_validate_columns,
+        help=(
+            "List of column names to use. "
+            'To set more than one, do the follows. --columns "x,y"'
+        ),
+    )(f)
+    f = click.option(
+        "--use-cols",
+        callback=_validate_use_cols,
+        help=(
+            "List of position of the column to use. "
+            'To set more than one, do the follows. --use-cols "0,1"'
+        ),
     )(f)
     f = click.option(
         "--index-col",
@@ -21,11 +49,12 @@ def common_options(f: Callable) -> Callable:
     f = click.option(
         "--header",
         type=click.IntRange(0),
-        help="Position of the line used as header.",
+        help="Row number to use as the column names.",
     )(f)
     f = click.option("--x-label", help="X-axis label.")(f)
     f = click.option("--y-label", help="Y-axis label.")(f)
     f = click.option("--title", help="Figure title.")(f)
+    f = click.option("--delimiter", default=",", help="Delimiter to use.")(f)
     f = click.option(
         "-o",
         "--output",
@@ -108,18 +137,38 @@ def pie(y_col, **kwargs) -> None:
 def _plot(
     in_file: Optional[str],
     out_file: Optional[str],
+    delimiter: str,
     title: Optional[str],
     x_label: Optional[str],
     y_label: Optional[str],
     header: Optional[int],
     index_col: Optional[int],
-    columns: Optional[str],
+    use_cols: Optional[list],
+    columns: Optional[list],
     params: dict = {},
 ) -> None:
     fig, ax = plt.subplots()
 
-    data = read_data(in_file, header, index_col, columns)
-    data.plot(ax=ax, **params)
+    buffer = _get_file_hander(in_file)
+    data = pd.read_csv(
+        buffer,
+        header=header,
+        index_col=index_col,
+        delimiter=delimiter,
+        usecols=use_cols,
+        engine="python",
+    )
+
+    if columns:
+        if len(columns) == len(data.columns):
+            data.columns = columns
+        else:
+            raise click.BadParameter("Invalid columns length.")
+
+    try:
+        data.plot(ax=ax, **params)
+    except TypeError as e:
+        raise click.ClickException(str(e))
 
     if title:
         ax.set_title(title)
@@ -134,26 +183,12 @@ def _plot(
         plt.show()
 
 
-def read_data(
-    in_file: Optional[str],
-    header: Optional[int],
-    index_col: Optional[int],
-    columns_str: Optional[str],
-) -> pd.DataFrame:
-    """Read data from file or stdin."""
+def _get_file_hander(in_file: Optional[str]) -> IO[str]:
     stdin_text = click.get_text_stream("stdin")
     if not stdin_text.isatty():
-        fp = stdin_text
+        buffer = stdin_text
     else:
         if in_file is None:
             raise click.UsageError('If you do not use pipes, "-i" option is required.')
-        fp = open(in_file)
-
-    data = pd.read_csv(fp, header=header, index_col=index_col)
-
-    if columns_str:
-        columns = columns_str.split(",")
-        if len(columns) == len(data.columns):
-            data.columns = columns
-
-    return data
+        buffer = open(in_file)
+    return buffer
