@@ -39,7 +39,7 @@ If you do not use "-o" option, it is saved in a temporary file and opened.
 ### Example
 
 ```sh
-echo "x\n1\n4" | plot
+echo "x\n0\n2" | plot
 ```
 
 ## Change Log
