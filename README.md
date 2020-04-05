@@ -36,30 +36,33 @@ plot -i data.csv -o plot.png
 
 If you do not use "-o" option, it is saved in a temporary file and opened.
 
+To use tsv file:
+
+```sh
+plot -i data.tsv --delimiter '\t'
+```
+
+To change [style](https://matplotlib.org/gallery/style_sheets/style_sheets_reference.html):
+
+```sh
+plot --style ggplot
+```
+
 See also `plot --help`.
 
 ### Available Graph Types
 
 Subcommands allow you to use a variety of graphs.
 
-| subcommand | graph types |
+| subcommand | graph type |
 | :-- | :-- |
 | line | Line graph |
-| bar | Vertical bar graph |
-| barh | Horizontal bar graph |
+| bar | Bar graph |
 | area | Area plot |
 | box | Box plot |
 | hist | Histogram |
 | scatter | Scatter plot |
 | pie | Pie chart |
-
-### Examples
-
-```sh
-echo "0\n1\n4" | plot
-```
-
-![example](https://user-images.githubusercontent.com/6437204/78469450-6ac1be00-775c-11ea-853f-e676c7784544.png)
 
 ## Line Graph
 
@@ -72,10 +75,10 @@ echo "0\n1\n4" | plot
 ```
 
 ```sh
-plot line -i data.csv
+plot line -i simple.csv
 ```
 
-![Basic Line](https://user-images.githubusercontent.com/6437204/78469479-9f357a00-775c-11ea-81e6-41ce3ee8a4c7.png)
+![basic-line](https://user-images.githubusercontent.com/6437204/78481527-cdc54c00-7780-11ea-98b2-370c8c4ae702.png)
 
 ### with Header
 
@@ -87,7 +90,7 @@ x
 ```
 
 ```sh
-plot line -i data.csv --header
+plot line -i simple-with-header.csv --header
 ```
 
 ![Basic Line with Header](https://user-images.githubusercontent.com/6437204/78469555-43b7bc00-775d-11ea-9ab9-83761b2a8944.png)
@@ -95,15 +98,23 @@ plot line -i data.csv --header
 ### Set Title, Label and Legend
 
 ```sh
-plot line -i data.csv --title "Basic Line" --x-label x --y-label y --legends line
+plot line -i simple.csv --title "Basic Line" --x-label x --y-label y --legends line
 ```
 
 ![Basic Line with Title and Label](https://user-images.githubusercontent.com/6437204/78469531-1408b400-775d-11ea-9863-814f2a6b13ff.png)
 
+### Change line style
+
+```sh
+plot line -i simple.csv --marker o --linestyle dashed
+```
+
+![basic-line-changed-style](https://user-images.githubusercontent.com/6437204/78501898-03762f00-7799-11ea-8cf6-473389ee3313.png)
+
 ### Multiple Lines
 
 ```csv
-year,blue,red
+year,a,b
 1990,20,4
 1997,18,25
 2003,489,281
@@ -112,64 +123,90 @@ year,blue,red
 ```
 
 ```sh
-plot line -i data.csv --header --index-col 0
+plot line -i multiple.csv --header --index-col 0
 ```
 
 ```sh
-plot line -i data.csv --header --index-col year
+plot line -i multiple.csv --header --index-col year
 ```
 
-![Multiple Lines](https://user-images.githubusercontent.com/6437204/78469581-82e60d00-775d-11ea-9e6e-58ede68c41d1.png)
+![multiple-lines](https://user-images.githubusercontent.com/6437204/78489195-f0586480-7782-11ea-9160-0cbee89ccaf1.png)
 
 ## Bar Graph
 
-### Basic Bar
-
-```csv
-1
-3
-2
-```
+### Vertical Bar
 
 ```sh
-plot bar -i data.csv
+plot bar -i random.csv --header
 ```
 
-![Basic Bar](https://user-images.githubusercontent.com/6437204/78469595-ac9f3400-775d-11ea-95a9-6d861ab5452e.png)
+![vertical-bar](https://user-images.githubusercontent.com/6437204/78498634-6ca07700-7786-11ea-8ff0-4dbf9c273c3b.png)
 
-## Area Plot
+### Horizontal Bar
 
 ```sh
-plot area -i data.csv
+plot bar -i random.csv --header --horizontal
 ```
 
-![Area Plot](https://user-images.githubusercontent.com/6437204/78470202-84fe9a80-7762-11ea-80b3-77755ffab0fa.png)
+![horizontal-bar](https://user-images.githubusercontent.com/6437204/78498666-90fc5380-7786-11ea-8fda-69422227290b.png)
+
+### Stacked Bar
+
+```sh
+plot bar -i random.csv --header --stacked
+```
+
+![stacked-bar](https://user-images.githubusercontent.com/6437204/78498807-6f4f9c00-7787-11ea-8b48-53f4ad19a889.png)
+
+## Histogram
+
+### Basic Histogram
+
+```sh
+plot hist -i uniform.csv --header --use-cols 0 --no-legend
+```
+
+![basic-hist](https://user-images.githubusercontent.com/6437204/78499145-fbfb5980-7789-11ea-84e1-8192b7493384.png)
+
+### Multiple Histogram
+
+```sh
+plot hist -i uniform.csv --header --alpha 0.5
+```
+
+![multiple-hist](https://user-images.githubusercontent.com/6437204/78499522-1f270880-778c-11ea-8dd5-a49f411e54d4.png)
 
 ## Box Plot
 
 ```sh
-plot box -i data.csv
+plot box -i random.csv --header
 ```
 
-![Box Plot](https://user-images.githubusercontent.com/6437204/78470219-a9f30d80-7762-11ea-8a2c-655fc2c58b91.png)
+![box-plot](https://user-images.githubusercontent.com/6437204/78500061-5d71f700-778f-11ea-9c8e-ff44600ba38f.png)
 
-## Histogram
+## Area Plot
 
 ```sh
-plot hist -i data.csv
+plot area -i random.csv --header
 ```
+
+![area-plot](https://user-images.githubusercontent.com/6437204/78500345-d160cf00-7790-11ea-9faf-f1429253736d.png)
 
 ## Scatter plot
 
 ```sh
-plot scatter -i data.csv
+plot scatter -i random.csv --header
 ```
+
+![scatter](https://user-images.githubusercontent.com/6437204/78500349-d4f45600-7790-11ea-9c30-4081942a19b9.png)
 
 ## Pie chart
 
 ```sh
-plot pie -i data.csv
+plot pie -i with-index.csv --index-col 0 --header
 ```
+
+![pie-chart](https://user-images.githubusercontent.com/6437204/78500945-6b764680-7794-11ea-9451-3c17a9b07416.png)
 
 ## Shell Complete
 
