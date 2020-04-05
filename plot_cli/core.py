@@ -50,6 +50,8 @@ def common_options(f: Callable) -> Callable:
         multiple=True,
         help="Use style settings.",
     )(f)
+    f = click.option("--grid", "show_grid", is_flag=True, help="Show the grid.")(f)
+    f = click.option("--no-legend", is_flag=True, help="Hides the legend.")(f)
     f = click.option(
         "--columns",
         "--legends",
@@ -113,23 +115,40 @@ def cli(ctx, **kwargs) -> None:
 
 @cli.command()
 @common_options
-def line(**kwargs) -> None:
+@click.option(
+    "--marker", help="The marker style to use.",
+)
+@click.option(
+    "--linestyle",
+    "--ls",
+    type=click.Choice(
+        ["-", "--", "-.", ":", "solid", "dashed", "dashdot", "dotted", "none"]
+    ),
+    help="The line style to use.",
+)
+def line(marker: str, linestyle: str, **kwargs) -> None:
     """Plot 2D line graph."""
-    _plot(**kwargs)
+    _plot(params={"marker": marker, "linestyle": linestyle}, **kwargs)
 
 
 @cli.command()
 @common_options
-def bar(**kwargs) -> None:
+@click.option("--horizontal", is_flag=True, help="Make the graph horizontal.")
+@click.option("--stacked", is_flag=True, help="Stacked flag.")
+def bar(horizontal: bool, stacked: bool, **kwargs) -> None:
     """Plot bar graph."""
-    _plot(params={"kind": "bar", "rot": 0}, **kwargs)
+    if horizontal:
+        _plot(params={"kind": "barh", "rot": 0, "stacked": stacked}, **kwargs)
+    else:
+        _plot(params={"kind": "bar", "rot": 0, "stacked": stacked}, **kwargs)
 
 
 @cli.command()
 @common_options
-def barh(**kwargs) -> None:
-    """Plot bar graph."""
-    _plot(params={"kind": "barh", "rot": 0}, **kwargs)
+@click.option("--stacked", is_flag=True, help="Stacked flag.")
+def barh(stacked: bool, **kwargs) -> None:
+    """Plot horizontal bar graph."""
+    _plot(params={"kind": "barh", "rot": 0, "stacked": stacked}, **kwargs)
 
 
 @cli.command()
@@ -148,9 +167,17 @@ def box(**kwargs) -> None:
 
 @cli.command()
 @common_options
-def hist(**kwargs) -> None:
+@click.option(
+    "--alpha",
+    type=click.FloatRange(0, 1),
+    help="The value of the alpha channel that represents the graph transparency.",
+)
+@click.option(
+    "--bins", type=int, default=10, help="Number of histogram bins to be used."
+)
+def hist(alpha: float, bins: int, **kwargs) -> None:
     """Plot histgram."""
-    _plot(params={"kind": "hist"}, **kwargs)
+    _plot(params={"kind": "hist", "alpha": alpha, "bins": bins}, **kwargs)
 
 
 @cli.command()
@@ -192,8 +219,10 @@ def _plot(
     header: Optional[int],
     index_col: Optional[int],
     use_cols: Optional[list],
+    no_legend: bool,
     columns: Optional[list],
     style_list: tuple,
+    show_grid: bool,
     params: dict = {},
 ) -> None:
     for style in style_list:
@@ -219,7 +248,7 @@ def _plot(
             data.columns = columns
         else:
             raise click.BadParameter("Invalid columns length.")
-    if columns is None and header is None:
+    if no_legend or (columns is None and header is None):
         params["legend"] = False
 
     try:
@@ -233,6 +262,8 @@ def _plot(
         ax.set_xlabel(x_label)
     if y_label:
         ax.set_ylabel(y_label)
+    if show_grid:
+        ax.grid()
 
     if out_file:
         fig.savefig(out_file)
