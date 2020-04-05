@@ -7,7 +7,7 @@ import pandas as pd
 from . import __version__
 
 
-def _validate_columns(ctx, param, value):
+def _columns_callback(ctx, param, value):
     if value is None:
         return None
     else:
@@ -23,11 +23,37 @@ def _validate_use_cols(ctx, param, value):
         raise click.BadParameter(e)
 
 
+def _validate_index_col(ctx, param, value):
+    if value is not None and value.replace("-", "").isnumeric():
+        x = int(value)
+        if x < 0:
+            raise click.BadParameter(f"{x} is smaller than the minimum valid value 0")
+        else:
+            return x
+    else:
+        return value
+
+
+def _header_callback(ctx, param, value):
+    if value:
+        return 0
+    else:
+        return None
+
+
 def common_options(f: Callable) -> Callable:
     """Set common options."""
     f = click.option(
+        "--style",
+        "style_list",
+        type=click.Choice(plt.style.available + ["xkcd"]),
+        multiple=True,
+        help="Use style settings.",
+    )(f)
+    f = click.option(
         "--columns",
-        callback=_validate_columns,
+        "--legends",
+        callback=_columns_callback,
         help=(
             "List of column names to use. "
             'To set more than one, do the follows. --columns "x,y"'
@@ -43,13 +69,14 @@ def common_options(f: Callable) -> Callable:
     )(f)
     f = click.option(
         "--index-col",
-        type=click.IntRange(0),
-        help="Position of the column used as index.",
+        callback=_validate_index_col,
+        help="Position or name of the column used as index.",
     )(f)
     f = click.option(
         "--header",
-        type=click.IntRange(0),
-        help="Row number to use as the column names.",
+        is_flag=True,
+        callback=_header_callback,
+        help="Use first row as header.",
     )(f)
     f = click.option("--x-label", help="X-axis label.")(f)
     f = click.option("--y-label", help="Y-axis label.")(f)
@@ -145,8 +172,15 @@ def _plot(
     index_col: Optional[int],
     use_cols: Optional[list],
     columns: Optional[list],
+    style_list: tuple,
     params: dict = {},
 ) -> None:
+    for style in style_list:
+        if style == "xkcd":
+            plt.xkcd()
+        else:
+            plt.style.use(style)
+
     fig, ax = plt.subplots()
 
     buffer = _get_file_hander(in_file)
@@ -164,6 +198,8 @@ def _plot(
             data.columns = columns
         else:
             raise click.BadParameter("Invalid columns length.")
+    if columns is None and header is None:
+        params["legend"] = False
 
     try:
         data.plot(ax=ax, **params)
