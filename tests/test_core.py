@@ -30,7 +30,9 @@ def test_plot_and_save(tmp_path, runner):
     assert path.exists() is True
 
 
-@pytest.mark.parametrize("kind", ["line", "bar", "hist", "scatter", "pie"])
+@pytest.mark.parametrize(
+    "kind", ["line", "bar", "barh", "area", "box", "hist", "scatter", "pie"]
+)
 def test_plot(tmp_path, runner, kind):
     path = tmp_path / "plot.png"
 
