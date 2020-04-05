@@ -4,6 +4,7 @@
 
 Unreleased
 
+- Added the ability to plot several types of graphs, including boxplot and area plots.
 - Added support for changing the style of the graph.
 
 ## 0.1.0

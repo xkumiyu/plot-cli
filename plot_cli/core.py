@@ -127,6 +127,27 @@ def bar(**kwargs) -> None:
 
 @cli.command()
 @common_options
+def barh(**kwargs) -> None:
+    """Plot bar graph."""
+    _plot(params={"kind": "barh", "rot": 0}, **kwargs)
+
+
+@cli.command()
+@common_options
+def area(**kwargs) -> None:
+    """Plot area plot."""
+    _plot(params={"kind": "area"}, **kwargs)
+
+
+@cli.command()
+@common_options
+def box(**kwargs) -> None:
+    """Plot box plot."""
+    _plot(params={"kind": "box"}, **kwargs)
+
+
+@cli.command()
+@common_options
 def hist(**kwargs) -> None:
     """Plot histgram."""
     _plot(params={"kind": "hist"}, **kwargs)
