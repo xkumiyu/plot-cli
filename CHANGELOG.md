@@ -10,6 +10,7 @@ Unreleased
 - Added `--alpha` and `--bins` options in the histogram.
 - Added `--stacked` option in the bar plot.
 - Added support for changing the style of the graph.
+- Moved common_options from core.py to options.py
 
 ## 0.1.0
 
