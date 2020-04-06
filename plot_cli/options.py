@@ -1,7 +1,9 @@
-from typing import Callable
+from typing import Any, Callable, Optional
 
 import click
 import matplotlib.pyplot as plt
+
+from .config import config
 
 
 def _columns_callback(ctx, param, value):
@@ -31,22 +33,41 @@ def _validate_index_col(ctx, param, value):
         return value
 
 
-def _header_callback(ctx, param, value):
-    if value:
-        return 0
-    else:
-        return None
+def _header_option(f: Callable) -> Callable:
+    def callback(ctx: click.Context, param: Any, value: bool) -> Optional[int]:
+        value = config.header or value
+        if value:
+            return 0
+        else:
+            return None
+
+    return click.option(
+        "--header",
+        is_flag=True,
+        callback=callback,
+        help="Use first row as header.",
+    )(f)
 
 
-def common_options(f: Callable) -> Callable:
-    """Set common options."""
-    f = click.option(
+def _style_option(f: Callable) -> Callable:
+    def callback(ctx: click.Context, param: Any, value: tuple) -> tuple:
+        value = value or config.styles
+        value = tuple(set(value))
+        return value
+
+    return click.option(
         "--style",
         "style_list",
         type=click.Choice(plt.style.available + ["xkcd"]),
         multiple=True,
         help="Use style settings.",
+        callback=callback,
     )(f)
+
+
+def common_options(f: Callable) -> Callable:
+    """Set common options."""
+    f = _style_option(f)
     f = click.option("--grid", "show_grid", is_flag=True, help="Show the grid.")(f)
     f = click.option("--no-legend", is_flag=True, help="Hides the legend.")(f)
     f = click.option(
@@ -71,12 +92,7 @@ def common_options(f: Callable) -> Callable:
         callback=_validate_index_col,
         help="Position or name of the column used as index.",
     )(f)
-    f = click.option(
-        "--header",
-        is_flag=True,
-        callback=_header_callback,
-        help="Use first row as header.",
-    )(f)
+    f = _header_option(f)
     f = click.option("--x-label", help="X-axis label.")(f)
     f = click.option("--y-label", help="Y-axis label.")(f)
     f = click.option("--title", help="Figure title.")(f)
