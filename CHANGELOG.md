@@ -11,7 +11,7 @@ Unreleased
 - Added `--stacked` option in the bar plot.
 - Added support for changing the style of the graph.
 - Made it possible to configure it in the config file.
-- Moved common_options from core.py to options.py
+- Moved common_options from core.py to options.py.
 
 ## 0.1.0
 

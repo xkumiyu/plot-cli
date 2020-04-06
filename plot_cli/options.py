@@ -42,10 +42,7 @@ def _header_option(f: Callable) -> Callable:
             return None
 
     return click.option(
-        "--header",
-        is_flag=True,
-        callback=callback,
-        help="Use first row as header.",
+        "--header", is_flag=True, callback=callback, help="Use first row as header."
     )(f)
 
 
