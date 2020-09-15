@@ -131,8 +131,10 @@ def _plot(
     columns: Optional[list],
     style_list: tuple,
     show_grid: bool,
-    params: dict = {},
+    params: Optional[dict] = None,
 ) -> None:
+    if params is None:
+        params = {}
     for style in style_list:
         if style == "xkcd":
             plt.xkcd()
