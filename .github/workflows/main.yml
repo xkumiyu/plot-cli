@@ -63,6 +63,7 @@ jobs:
       run: |
         curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | python
         source $HOME/.poetry/env
+        poetry --version
 
     - name: Cache python packages
       uses: actions/cache@v1
@@ -88,7 +89,7 @@ jobs:
     - name: Lint with isort
       run: |
         source $HOME/.poetry/env
-        poetry run isort --check-only
+        poetry run isort . --check
 
     - name: Lint with mypy
       run: |

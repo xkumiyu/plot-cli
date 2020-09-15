@@ -23,7 +23,8 @@ def cli(ctx, **kwargs) -> None:
 @cli.command()
 @common_options
 @click.option(
-    "--marker", help="The marker style to use.",
+    "--marker",
+    help="The marker style to use.",
 )
 @click.option(
     "--linestyle",
@@ -130,8 +131,10 @@ def _plot(
     columns: Optional[list],
     style_list: tuple,
     show_grid: bool,
-    params: dict = {},
+    params: Optional[dict] = None,
 ) -> None:
+    if params is None:
+        params = {}
     for style in style_list:
         if style == "xkcd":
             plt.xkcd()
