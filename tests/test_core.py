@@ -15,7 +15,7 @@ def test_show_version(runner):
     result = runner.invoke(cli, ["--version"])
 
     assert result.exit_code == 0
-    assert re.match(r"^\w+ version \d+.\d+.\d+([a|b|rc]\d+)?$", result.output)
+    assert re.match(r"^\w+ version \d+.\d+.\d+(\.?(a|b|rc|dev)\d+)?$", result.output)
 
 
 def test_plot_and_save(tmp_path, runner):
