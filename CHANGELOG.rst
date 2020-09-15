@@ -1,7 +1,7 @@
 0.2.0
 -----
 
-Unreleased
+Released 2020-09-15
 
 - Added the ability to plot several types of graphs, including boxplot and area plots.
 - Added :code:`--grid` and :code:`--no-legend` options.

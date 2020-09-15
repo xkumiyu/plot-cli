@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "plot-cli"
-version = "0.2.0-dev"
+version = "0.2.0"
 description = "Command Line Interface for Data Visualization"
 authors = ["xkumiyu <xkumiyu@gmail.com>"]
 license = "MIT"
