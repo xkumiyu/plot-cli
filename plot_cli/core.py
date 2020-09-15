@@ -23,7 +23,8 @@ def cli(ctx, **kwargs) -> None:
 @cli.command()
 @common_options
 @click.option(
-    "--marker", help="The marker style to use.",
+    "--marker",
+    help="The marker style to use.",
 )
 @click.option(
     "--linestyle",

@@ -48,6 +48,7 @@ def _header_option(f: Callable) -> Callable:
 
 def _style_option(f: Callable) -> Callable:
     def callback(ctx: click.Context, param: Any, value: tuple) -> tuple:
+        # TODO: check available style
         value = value or config.styles
         value = tuple(set(value))
         return value
