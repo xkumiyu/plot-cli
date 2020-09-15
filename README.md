@@ -16,11 +16,15 @@ pip install plot-cli
 
 ## Getting Started
 
+You can output a graph from stdin or a file.
+
 ```sh
-cat data.csv | plot
+cat data.csv | plot line --header --index-col year
 ```
 
-![example](https://user-images.githubusercontent.com/6437204/78499522-1f270880-778c-11ea-8dd5-a49f411e54d4.png)
+![example](https://user-images.githubusercontent.com/6437204/78489195-f0586480-7782-11ea-9160-0cbee89ccaf1.png)
+
+See the [documentation](https://plot-cli.readthedocs.io/) for detailed usage and examples.
 
 ## Change Log
 

@@ -7,7 +7,7 @@ Line Graph
 Basic Line
 ^^^^^^^^^^
 
-.. code-block:: csv
+.. code-block:: text
 
     1
     3
@@ -23,7 +23,7 @@ Basic Line
 with Header
 ^^^^^^^^^^^
 
-.. code-block:: csv
+.. code-block:: text
 
     x
     1
@@ -62,7 +62,7 @@ Change line style
 Multiple Lines
 --------------
 
-.. code-block:: csv
+.. code-block:: text
 
     year,a,b
     1990,20,4
