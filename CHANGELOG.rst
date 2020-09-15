@@ -1,19 +1,20 @@
-# Change Log
-
-## 0.2.0
+0.2.0
+-----
 
 Unreleased
 
 - Added the ability to plot several types of graphs, including boxplot and area plots.
-- Added `--grid` and `--no-legend` options.
-- Added `--marker` and `--linestyle` options in the line graph.
-- Added `--alpha` and `--bins` options in the histogram.
-- Added `--stacked` option in the bar plot.
+- Added :code:`--grid` and :code:`--no-legend` options.
+- Added :code:`--marker` and :code:`--linestyle` options in the line graph.
+- Added :code:`--alpha` and :code:`--bins` options in the histogram.
+- Added :code:`--stacked` option in the bar plot.
 - Added support for changing the style of the graph.
+- Added documentation.
 - Made it possible to configure it in the config file.
 - Moved common_options from core.py to options.py.
 
-## 0.1.0
+0.1.0
+-----
 
 Released 2020-03-13
 
